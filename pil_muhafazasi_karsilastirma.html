@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pil Muhafazası — Yapısal Analiz Karşılaştırma</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F6F3;
+  --surface:#FFFFFF;
+  --surface2:#F0EEE9;
+  --border:#E2DFD8;
+  --border2:#C8C4BC;
+  --text:#1A1916;
+  --text2:#6B6860;
+  --text3:#A09C95;
+  --accent:#1B4FD8;
+  --accent-light:#EEF2FF;
+  --accent2:#D85A1A;
+  --accent2-light:#FEF3EE;
+  --green:#2D6A1F;
+  --green-light:#EDF7E8;
+  --red:#B91C1C;
+  --red-light:#FEF2F2;
+  --amber:#92400E;
+  --amber-light:#FFFBEB;
+  --radius:8px;
+  --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.mono{font-family:'DM Mono',monospace;}
+
+/* HEADER */
+.header{background:var(--text);color:#fff;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.header-left h1{font-size:18px;font-weight:500;letter-spacing:-.01em;}
+.header-left p{font-size:11px;color:#9CA3AF;margin-top:2px;font-family:'DM Mono',monospace;}
+.header-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.hbadge{font-size:10px;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-weight:500;}
+.hbadge.al{background:#1e3a8a;color:#bfdbfe;}
+.hbadge.st{background:#7c2d12;color:#fed7aa;}
+.hbadge.info{background:#1f2937;color:#9CA3AF;}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;gap:0;overflow-x:auto;}
+.nav-btn{padding:0.875rem 1.25rem;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* MAIN */
+.main{max-width:1000px;margin:0 auto;padding:1.5rem 1.5rem;}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.card-title .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;}
+
+/* FORM */
+label.field-label{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px;}
+select,input[type=number]{width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6860' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;}
+select:focus,input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,79,216,.1);}
+.sel-group{margin-bottom:8px;}
+.vs-row{display:grid;grid-template-columns:1fr 36px 1fr;gap:8px;align-items:end;margin-bottom:8px;}
+.vs-mid{text-align:center;font-size:11px;font-weight:600;color:var(--text3);font-family:'DM Mono',monospace;padding-bottom:9px;}
+.btn-primary{display:block;width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.btn-primary:hover{background:#1640B0;}
+
+/* RESULTS */
+.result-zone{display:none;margin-top:1rem;}.result-zone.show{display:block;}
+.divider{height:1px;background:var(--border);margin:1rem 0;}
+
+.big-num{font-size:40px;font-weight:600;font-family:'DM Mono',monospace;line-height:1;}
+.big-num.pos{color:var(--green);}.big-num.neg{color:var(--red);}.big-num.neu{color:var(--text2);}
+.result-desc{font-size:12px;color:var(--text2);margin-top:6px;line-height:1.6;max-width:600px;}
+
+/* BARS */
+.bar-group{margin-bottom:8px;}
+.bar-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:3px;}
+.bar-track{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;transition:width .4s ease;}
+.fill-blue{background:var(--accent);}
+.fill-orange{background:var(--accent2);}
+.fill-green{background:var(--green);}
+
+/* MINI CARDS */
+.mini-card{background:var(--surface2);border-radius:var(--radius);padding:8px 10px;}
+.mc-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.mc-val{font-size:14px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace;}
+.mc-val.pos{color:var(--green);}.mc-val.neg{color:var(--red);}
+.mc-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* INFO BLOCKS */
+.info-block{border-radius:var(--radius);padding:10px 12px;font-size:12px;line-height:1.6;margin-top:8px;border-left:3px solid;}
+.info-block.ok{background:var(--green-light);border-color:var(--green);color:var(--green);}
+.info-block.warn{background:var(--amber-light);border-color:var(--amber);color:var(--amber);}
+.info-block.danger{background:var(--red-light);border-color:var(--red);color:var(--red);}
+.info-block.neutral{background:var(--surface2);border-color:var(--border2);color:var(--text2);}
+
+/* KPI CARDS */
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;box-shadow:var(--shadow);}
+.kpi-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.kpi-val{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);line-height:1;}
+.kpi-val.pos{color:var(--green);}.kpi-val.neg{color:var(--red);}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px;}
+
+/* RANGE SLIDERS */
+.slider-row{display:grid;grid-template-columns:180px 1fr 80px;gap:8px;align-items:center;margin-bottom:10px;}
+.slider-label{font-size:12px;color:var(--text2);}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px rgba(27,79,216,.15);}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+.slider-val{font-size:12px;font-weight:600;font-family:'DM Mono',monospace;text-align:right;color:var(--text);}
+
+/* DETAIL TABS */
+.dtab-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1rem;}
+.dtab{padding:5px 12px;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;}
+.dtab:hover{border-color:var(--accent);color:var(--accent);}
+.dtab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* OVERVIEW TABLE */
+.ov-table{width:100%;border-collapse:collapse;font-size:12px;}
+.ov-table th{padding:8px 10px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--surface2);}
+.ov-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.ov-table tr:hover td{background:var(--surface2);}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace;}
+.badge-al{background:#DBEAFE;color:#1e3a8a;}
+.badge-st{background:#FED7AA;color:#7c2d12;}
+
+/* SECTION LABEL */
+.section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;}
+
+/* DETAIL GRID */
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;}
+.dg-card{background:var(--surface2);border-radius:var(--radius);padding:10px 12px;}
+.dg-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;}
+.dg-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border);}
+.dg-row:last-child{border-bottom:none;}
+.dg-rl{font-size:11px;color:var(--text2);}
+.dg-rv{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
+
+@media(max-width:640px){
+  .grid-2{grid-template-columns:1fr;}
+  .slider-row{grid-template-columns:1fr 60px;grid-template-rows:auto auto;}
+  .slider-row input[type=range]{grid-column:1/-1;}
+  .header{padding:1rem;}
+  .main{padding:1rem;}
+  .nav{padding:0 1rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Pil Muhafazası — Yapısal Analiz</h1>
+    <p>Lisans Tezi &nbsp;·&nbsp; Denizli &nbsp;·&nbsp; 2025</p>
+  </div>
+  <div class="header-badges">
+    <span class="hbadge al">Alüminyum</span>
+    <span class="hbadge st">Yapısal Çelik</span>
+    <span class="hbadge info">4 Tasarım · 8 Konfigürasyon</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('compare',this)">Karşılaştır</button>
+  <button class="nav-btn" onclick="showPage('weight',this)">Ağırlık &amp; Menzil</button>
+  <button class="nav-btn" onclick="showPage('overview',this)">Genel Bakış</button>
+  <button class="nav-btn" onclick="showPage('detail',this)">Tasarım Detayı</button>
+</nav>
+
+<main class="main">
+
+<!-- PAGE: COMPARE -->
+<div id="page-compare" class="page active">
+  <div class="grid-2">
+
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Analiz değeri karşılaştır</div>
+      <div class="vs-row">
+        <div class="sel-group"><label class="field-label">Tasarım A</label><select id="selA"></select></div>
+        <div class="vs-mid">VS</div>
+        <div class="sel-group"><label class="field-label">Tasarım B</label><select id="selB"></select></div>
+      </div>
+      <div class="sel-group"><label class="field-label">Metrik</label><select id="selMetric">
+        <option value="mass">Kütle (kg)</option>
+        <option value="stress">Eşdeğer Gerilme — Statik (MPa)</option>
+        <option value="deform_s">Toplam Deformasyon — Statik (mm)</option>
+        <option value="sehim_s">Minimum Sehim — Statik (mm)</option>
+        <option value="freq">Rezonans Frekansı (Hz)</option>
+        <option value="deform_r">Toplam Deformasyon — Rezonans (mm)</option>
+        <option value="deform_c">Toplam Deformasyon — Çarpışma (mm)</option>
+        <option value="sehim_c">Minimum Sehim — Çarpışma (mm)</option>
+        <option value="force">Çarpışma Kuvveti (N)</option>
+        <option value="kinetic">Kinetik Enerji (mJ)</option>
+        <option value="energy" selected>İç Enerji (mJ)</option>
+      </select></div>
+      <button class="btn-primary" onclick="doCompare()">Karşılaştır →</button>
+      <div class="result-zone" id="cmp-result">
+        <div class="divider"></div>
+        <div class="big-num" id="cmp-pct"></div>
+        <div class="result-desc" id="cmp-desc"></div>
+        <div style="margin-top:12px;" id="cmp-bars"></div>
+        <div class="grid-3" style="margin-top:10px;" id="cmp-mini"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Kütle & Yapısal Etki</div>
+      <div class="vs-row">
+        <div class="sel-group"><label class="field-label">Tasarım A</label><select id="mselA"></select></div>
+        <div class="vs-mid">VS</div>
+        <div class="sel-group"><label class="field-label">Tasarım B</label><select id="mselB"></select></div>
+      </div>
+      <button class="btn-primary" onclick="doMassCompare()">Yapısal Etki Analiz Et →</button>
+      <div class="result-zone" id="mass-result">
+        <div class="divider"></div>
+        <div class="grid-auto" id="mass-kpis" style="margin-bottom:10px;"></div>
+        <div id="mass-bars"></div>
+        <div id="mass-info"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE: WEIGHT & RANGE -->
+<div id="page-weight" class="page">
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:var(--green)"></span>Ağırlık azalması → Menzil kazanımı & Şarj tasarrufu</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:1rem;line-height:1.7;background:var(--surface2);padding:10px 12px;border-radius:var(--radius);border-left:3px solid var(--accent);">
+      Araştırmalara göre <strong>%10 ağırlık azalması</strong>, enerji tüketiminde yaklaşık <strong>%3–6 oranında azalma</strong> sağlar. Bu hesaplayıcı seçilen iki tasarım arasındaki kütle farkını baz alarak kazanılan menzil ve Türkiye şarj fiyatlarına göre yıllık tasarrufu hesaplar.
+    </div>
+    <div class="vs-row">
+      <div class="sel-group"><label class="field-label">Referans Tasarım</label><select id="rselA"></select></div>
+      <div class="vs-mid">VS</div>
+      <div class="sel-group"><label class="field-label">Karşılaştırılan</label><select id="rselB"></select></div>
+    </div>
+    <div class="divider"></div>
+    <div class="slider-row"><span class="slider-label">Araç menzili (km)</span><input type="range" id="baseRange" min="200" max="700" value="400" step="10" oninput="updateRange()"><span class="slider-val" id="baseRangeV">400</span></div>
+    <div class="slider-row"><span class="slider-label">Batarya kapasitesi (kWh)</span><input type="range" id="batKwh" min="40" max="120" value="75" step="1" oninput="updateRange()"><span class="slider-val" id="batKwhV">75</span></div>
+    <div class="slider-row"><span class="slider-label">Yıllık sürüş (km)</span><input type="range" id="annualKm" min="5000" max="50000" value="20000" step="1000" oninput="updateRange()"><span class="slider-val" id="annualKmV">20.000</span></div>
+    <div class="slider-row"><span class="slider-label">Şarj birim fiyatı (₺/kWh)</span><input type="range" id="priceKwh" min="1" max="20" value="7" step="0.5" oninput="updateRange()"><span class="slider-val" id="priceKwhV">7,0</span></div>
+    <div class="slider-row"><span class="slider-label">Verimlilik etkisi (%)</span><input type="range" id="effImpact" min="3" max="6" value="4.5" step="0.5" oninput="updateRange()"><span class="slider-val" id="effImpactV">4,5%</span></div>
+    <div class="divider"></div>
+    <div class="grid-auto" id="range-kpis" style="margin-bottom:10px;"></div>
+    <div id="range-info"></div>
+    <div style="margin-top:12px;" id="range-bars"></div>
+  </div>
+</div>
+
+<!-- PAGE: OVERVIEW -->
+<div id="page-overview" class="page">
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#8B5CF6"></span>Tüm tasarımlar — genel bakış</div>
+    <div class="sel-group" style="max-width:280px;margin-bottom:1rem;">
+      <label class="field-label">Metrik seç</label>
+      <select id="ovMetric" onchange="buildOverview()">
+        <option value="mass">Kütle (kg)</option>
+        <option value="stress">Eşdeğer Gerilme — Statik (MPa)</option>
+        <option value="deform_s">Toplam Deformasyon — Statik (mm)</option>
+        <option value="freq">Rezonans (Hz)</option>
+        <option value="energy" selected>İç Enerji (mJ)</option>
+        <option value="kinetic">Kinetik Enerji (mJ)</option>
+        <option value="force">Çarpışma Kuvveti (N)</option>
+        <option value="deform_c">Toplam Deformasyon — Çarpışma (mm)</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto;"><table class="ov-table" id="ov-table"></table></div>
+  </div>
+</div>
+
+<!-- PAGE: DETAIL -->
+<div id="page-detail" class="page">
+  <div class="card">
+    <div class="card-title"><span class="dot" style="background:#059669"></span>Tasarım detayı</div>
+    <div class="dtab-bar" id="dtabs"></div>
+    <div class="dg-grid" id="ddetail"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const NAMES={'BG-101':'Referans Tasarım','BG-102':'Referans İnceltilmiş','BG-201':'Referans Kaburgalı','BG-202':'İnceltilmiş Kaburgalı'};
+const CODES=['BG-101','BG-102','BG-201','BG-202'];
+const MATS=['Alüminyum','Yapısal Çelik'];
+const DB={
+  'BG-101|Alüminyum':{mass:34.001,stress:17.518,deform_s:0.23516,sehim_s:0.22752,freq:106.92,deform_r:14.784,deform_c:144.55,sehim_c:125.61,force:397.93,kinetic:109000,energy:1229600},
+  'BG-101|Yapısal Çelik':{mass:98.744,stress:22.157,deform_s:0.10342,sehim_s:0.10002,freq:106.54,deform_r:8.68,deform_c:62.58,sehim_c:39.2,force:613.57,kinetic:210780,energy:3733100},
+  'BG-102|Alüminyum':{mass:25.701,stress:44.786,deform_s:0.53813,sehim_s:0.52078,freq:93.329,deform_r:17.46,deform_c:159.72,sehim_c:82.915,force:394.26,kinetic:86277,energy:962390},
+  'BG-102|Yapısal Çelik':{mass:74.641,stress:44.834,deform_s:0.18715,sehim_s:0.18110,freq:91.902,deform_r:10.253,deform_c:63.97,sehim_c:38.74,force:764.67,kinetic:96951,energy:2868200},
+  'BG-201|Alüminyum':{mass:28.292,stress:26.677,deform_s:0.32037,sehim_s:0.31317,freq:112.11,deform_r:16.415,deform_c:186.06,sehim_c:141.77,force:296.02,kinetic:77821,energy:1000000},
+  'BG-201|Yapısal Çelik':{mass:82.165,stress:26.624,deform_s:0.11080,sehim_s:0.10828,freq:112.33,deform_r:9.635,deform_c:87.891,sehim_c:65.368,force:381.32,kinetic:117500,energy:3295500},
+  'BG-202|Alüminyum':{mass:21.690,stress:49.902,deform_s:0.63201,sehim_s:0.61649,freq:93.367,deform_r:19.42,deform_c:197.18,sehim_c:146.09,force:301.10,kinetic:58878,energy:2896600},
+  'BG-202|Yapısal Çelik':{mass:62.990,stress:49.906,deform_s:0.21935,sehim_s:0.21390,freq:93.025,deform_r:11.40,deform_c:79.707,sehim_c:67.858,force:781.17,kinetic:79496,energy:11358000}
+};
+const LABELS={mass:'Kütle (kg)',stress:'Eşd. Gerilme (MPa)',deform_s:'Top. Deformasyon-Statik (mm)',sehim_s:'Min. Sehim-Statik (mm)',freq:'Rezonans (Hz)',deform_r:'Top. Deformasyon-Rezonans (mm)',deform_c:'Top. Deformasyon-Çarpışma (mm)',sehim_c:'Min. Sehim-Çarpışma (mm)',force:'Çarpışma Kuvveti (N)',kinetic:'Kinetik Enerji (mJ)',energy:'İç Enerji (mJ)'};
+const GROUPS=[{title:'Statik analiz',keys:['stress','deform_s','sehim_s']},{title:'Rezonans',keys:['freq','deform_r']},{title:'Çarpışma analizi',keys:['deform_c','sehim_c','force','kinetic','energy']},{title:'Kütle',keys:['mass']}];
+const keys=Object.keys(DB);
+
+function keyLabel(k){const[c,m]=k.split('|');return NAMES[c]+' — '+m;}
+function fmt(v,k){if(k==='energy'||k==='kinetic')return v>=1e6?(v/1e6).toFixed(3)+' ×10⁶ mJ':v.toLocaleString('tr-TR');return v.toLocaleString('tr-TR',{maximumFractionDigits:3});}
+function barHtml(label,val,mx,cls){return'<div class="bar-group"><div class="bar-meta"><span>'+label+'</span><span class="mono">'+fmt(val,'')+'</span></div><div class="bar-track"><div class="bar-fill '+cls+'" style="width:'+Math.min(100,(val/mx*100)).toFixed(1)+'%"></div></div></div>';}
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='overview')buildOverview();
+  if(id==='detail'){buildDetailTabs();buildDetailContent();}
+  if(id==='weight')updateRange();
+}
+
+function fillSelect(id,idx){
+  const s=document.getElementById(id);s.innerHTML='';
+  keys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=keyLabel(k);s.appendChild(o);});
+  if(idx!==undefined)s.selectedIndex=idx;
+}
+
+function doCompare(){
+  const kA=document.getElementById('selA').value,kB=document.getElementById('selB').value;
+  const metric=document.getElementById('selMetric').value;
+  const vA=DB[kA][metric],vB=DB[kB][metric];
+  const diff=vA-vB,pct=vB!==0?diff/vB*100:0,abs=Math.abs(pct).toFixed(1);
+  const lnA=keyLabel(kA),lnB=keyLabel(kB);
+  const rc=document.getElementById('cmp-result');rc.classList.add('show');
+  const pe=document.getElementById('cmp-pct'),de=document.getElementById('cmp-desc');
+  pe.className='big-num '+(Math.abs(pct)<0.05?'neu':pct<0?'pos':'neg');
+  pe.textContent=Math.abs(pct)<0.05?'Eşit':(pct<0?'':'+')+'%'+abs;
+  de.textContent=Math.abs(pct)<0.05?LABELS[metric]+' açısından iki tasarım arasında anlamlı fark yok.':lnA+' tasarımının '+LABELS[metric]+' değeri, '+lnB+' tasarımına göre %'+abs+(pct<0?' daha az':' daha fazla')+'. ('+fmt(vA,metric)+' → '+fmt(vB,metric)+')';
+  const mx=Math.max(vA,vB);
+  document.getElementById('cmp-bars').innerHTML=barHtml(lnA,vA,mx,'fill-blue')+barHtml(lnB,vB,mx,'fill-orange');
+  const sumK=['mass','stress','energy'];
+  document.getElementById('cmp-mini').innerHTML=sumK.map(mk=>{
+    const a=DB[kA][mk],b=DB[kB][mk];const p=b!==0?((a-b)/b*100).toFixed(1):'—';
+    const cls=p!=='—'?(parseFloat(p)<0?'pos':'neg'):'';
+    return'<div class="mini-card"><div class="mc-label">'+LABELS[mk].split('(')[0].trim()+'</div><div class="mc-val '+cls+'">'+(p!=='—'?(parseFloat(p)>=0?'+':'')+p+'%':'—')+'</div><div class="mc-sub">'+fmt(a,mk)+' / '+fmt(b,mk)+'</div></div>';
+  }).join('');
+}
+
+function doMassCompare(){
+  const kA=document.getElementById('mselA').value,kB=document.getElementById('mselB').value;
+  const dA=DB[kA],dB=DB[kB];
+  const lnA=keyLabel(kA),lnB=keyLabel(kB);
+  const massPct=(dB.mass-dA.mass)/dA.mass*100;
+  const dcPct=(dB.deform_c-dA.deform_c)/dA.deform_c*100;
+  const dsPct=(dB.deform_s-dA.deform_s)/dA.deform_s*100;
+  const energyPct=(dB.energy-dA.energy)/dA.energy*100;
+  const forcePct=(dB.force-dA.force)/dA.force*100;
+  const rc=document.getElementById('mass-result');rc.classList.add('show');
+  function mk(label,val,unitA,unitB){
+    const cls=val<0?'pos':'neg';
+    return'<div class="mini-card"><div class="mc-label">'+label+'</div><div class="mc-val '+cls+'">'+(val>=0?'+':'')+val.toFixed(1)+'%</div><div class="mc-sub">'+unitA+' → '+unitB+'</div></div>';
+  }
+  document.getElementById('mass-kpis').innerHTML=
+    mk('Kütle',massPct,dA.mass.toFixed(1)+' kg',dB.mass.toFixed(1)+' kg')+
+    mk('Çarpışma deformasyon',dcPct,dA.deform_c.toFixed(1)+' mm',dB.deform_c.toFixed(1)+' mm')+
+    mk('Statik deformasyon',dsPct,dA.deform_s.toFixed(3)+' mm',dB.deform_s.toFixed(3)+' mm')+
+    mk('İç enerji',energyPct,fmt(dA.energy,'energy'),fmt(dB.energy,'energy'))+
+    mk('Çarpışma kuvveti',forcePct,dA.force.toFixed(1)+' N',dB.force.toFixed(1)+' N');
+  const mxM=Math.max(dA.mass,dB.mass),mxD=Math.max(dA.deform_c,dB.deform_c);
+  document.getElementById('mass-bars').innerHTML=
+    '<div class="section-label" style="margin-bottom:6px;">Kütle</div>'+
+    barHtml(lnA,dA.mass,mxM,'fill-blue')+barHtml(lnB,dB.mass,mxM,'fill-orange')+
+    '<div class="section-label" style="margin:10px 0 6px;">Çarpışma toplam deformasyonu</div>'+
+    barHtml(lnA,dA.deform_c,mxD,'fill-blue')+barHtml(lnB,dB.deform_c,mxD,'fill-orange');
+  const absM=Math.abs(massPct).toFixed(1),absD=Math.abs(dcPct).toFixed(1);
+  let cls='neutral',txt='';
+  if(massPct<-5&&dcPct>15){cls='danger';txt='Ağırlık %'+absM+' azalmış ancak çarpışma deformasyonu %'+absD+' artmış. Çarpışma güvenliği detaylı değerlendirilmeli.';}
+  else if(massPct<-5&&dcPct>5){cls='warn';txt='Ağırlık %'+absM+' azalmış, çarpışma deformasyonu %'+absD+' artmış. Kabul edilebilir bir denge ancak güvenlik marjı kontrol edilmeli.';}
+  else if(massPct<-5&&dcPct<=0){cls='ok';txt='Ağırlık %'+absM+' azalmış ve çarpışma deformasyonu da %'+absD+' iyileşmiş. Hem hafiflik hem yapısal güvenlik açısından olumlu sonuç.';}
+  else if(massPct<-5){cls='ok';txt='Ağırlık %'+absM+' azalmış, deformasyon değişimi sınırlı (%'+absD+'). Genel olarak olumlu bir optimizasyon.';}
+  else if(massPct>5){cls='warn';txt='Ağırlık %'+absM+' artmış. Bu artış araç menzilini ve enerji verimliliğini olumsuz etkiler.';}
+  else{txt='İki tasarım arasındaki kütle farkı %'+absM+' düzeyinde. Deformasyon değişimi: %'+absD+'.';}
+  document.getElementById('mass-info').innerHTML='<div class="info-block '+cls+'">'+txt+'</div>';
+}
+
+function updateRange(){
+  const kA=document.getElementById('rselA').value,kB=document.getElementById('rselB').value;
+  const baseRange=parseInt(document.getElementById('baseRange').value);
+  const batKwh=parseInt(document.getElementById('batKwh').value);
+  const annualKm=parseInt(document.getElementById('annualKm').value);
+  const priceKwh=parseFloat(document.getElementById('priceKwh').value);
+  const effImpact=parseFloat(document.getElementById('effImpact').value);
+  document.getElementById('baseRangeV').textContent=baseRange;
+  document.getElementById('batKwhV').textContent=batKwh;
+  document.getElementById('annualKmV').textContent=annualKm.toLocaleString('tr-TR');
+  document.getElementById('priceKwhV').textContent=priceKwh.toFixed(1)+'₺';
+  document.getElementById('effImpactV').textContent='%'+effImpact.toFixed(1);
+  const mA=DB[kA].mass,mB=DB[kB].mass;
+  const massDiff=mA-mB;
+  if(massDiff===0){
+    document.getElementById('range-kpis').innerHTML='<div class="mini-card" style="grid-column:1/-1"><div class="mc-label">Kütle farkı</div><div class="mc-val">0 kg</div><div class="mc-sub">Farklı tasarımlar seçin</div></div>';
+    document.getElementById('range-info').innerHTML='<div class="info-block neutral">Seçilen iki tasarım aynı kütleye sahip.</div>';
+    document.getElementById('range-bars').innerHTML='';return;
+  }
+  const massReductionPct=massDiff/mA*100;
+  const effGainPct=massReductionPct/10*effImpact;
+  const rangeGain=baseRange*(effGainPct/100);
+  const newRange=baseRange+rangeGain;
+  const kwhPer100km=batKwh/baseRange*100;
+  const kwhSavedPer100km=kwhPer100km*(effGainPct/100);
+  const annualKwhSaved=kwhSavedPer100km/100*annualKm;
+  const annualCostSaved=annualKwhSaved*priceKwh;
+  const lnA=keyLabel(kA),lnB=keyLabel(kB);
+  function kpiCard(label,val,sub,pos){
+    return'<div class="kpi-card"><div class="kpi-label">'+label+'</div><div class="kpi-val '+(pos?'pos':'neg')+'">'+val+'</div><div class="kpi-sub">'+sub+'</div></div>';
+  }
+  const sign=massDiff>0;
+  document.getElementById('range-kpis').innerHTML=
+    '<div class="kpi-card"><div class="kpi-label">Kütle farkı</div><div class="kpi-val">'+(massDiff>0?'+':'')+massDiff.toFixed(1)+' kg</div><div class="kpi-sub">'+lnA+': '+mA.toFixed(1)+' kg · '+lnB+': '+mB.toFixed(1)+' kg</div></div>'+
+    '<div class="kpi-card"><div class="kpi-label">Verimlilik kazanımı</div><div class="kpi-val '+(effGainPct>=0?'pos':'neg')+'">'+(effGainPct>=0?'+':'')+effGainPct.toFixed(2)+'%</div><div class="kpi-sub">%10 kütle → %'+effImpact.toFixed(1)+' enerji tasarrufu kabulü</div></div>'+
+    kpiCard('Kazanılan menzil',(rangeGain>=0?'+':'')+rangeGain.toFixed(1)+' km','Yeni menzil: '+newRange.toFixed(0)+' km',sign)+
+    kpiCard('Yıllık enerji tasarrufu',(annualKwhSaved>=0?'+':'')+annualKwhSaved.toFixed(0)+' kWh',annualKm.toLocaleString('tr-TR')+' km/yıl üzerinden',sign)+
+    kpiCard('Yıllık şarj tasarrufu',(annualCostSaved>=0?'-':'+')+''+Math.abs(annualCostSaved).toFixed(0)+' ₺',priceKwh.toFixed(1)+'₺/kWh · Türkiye birim fiyatı',sign)+
+    kpiCard('5 yıllık tasarruf',(annualCostSaved>=0?'-':'+')+''+Math.abs(annualCostSaved*5).toFixed(0)+' ₺','Aynı kullanım koşullarında kümülatif',sign);
+  const infoTxt=massDiff>0
+    ?lnA+' tasarımı '+massDiff.toFixed(1)+' kg daha hafif (%'+Math.abs(massReductionPct).toFixed(1)+' azalma). %'+effImpact.toFixed(1)+' verimlilik varsayımıyla '+rangeGain.toFixed(1)+' km ek menzil ve yılda '+Math.abs(annualCostSaved).toFixed(0)+' ₺ şarj tasarrufu sağlar.'
+    :lnB+' tasarımı '+Math.abs(massDiff).toFixed(1)+' kg daha ağır. Bu durumda '+lnB+' daha fazla enerji tüketir.';
+  document.getElementById('range-info').innerHTML='<div class="info-block '+(massDiff>0?'ok':'warn')+'">'+infoTxt+'</div>';
+  const mxM=Math.max(mA,mB),mxR=Math.max(baseRange,newRange);
+  document.getElementById('range-bars').innerHTML=
+    '<div class="section-label" style="margin:12px 0 6px;">Kütle karşılaştırması</div>'+
+    barHtml(lnA,mA,mxM,'fill-blue')+barHtml(lnB,mB,mxM,'fill-orange')+
+    '<div class="section-label" style="margin:10px 0 6px;">Tahmini menzil karşılaştırması</div>'+
+    barHtml('Mevcut menzil ('+lnA+')',baseRange,mxR,'fill-blue')+barHtml('Yeni menzil ('+lnB+')',newRange,mxR,'fill-green');
+}
+
+function buildOverview(){
+  const metric=document.getElementById('ovMetric').value;
+  const vals=keys.map(k=>({k,v:DB[k][metric]}));
+  const mx=Math.max(...vals.map(x=>x.v));
+  const rows=vals.map(({k,v})=>{
+    const[c,m]=k.split('|');const isAl=m==='Alüminyum';
+    const pct=(v/mx*100).toFixed(1);
+    return'<tr><td>'+NAMES[c]+'</td><td><span class="badge '+(isAl?'badge-al':'badge-st')+'">'+m+'</span></td><td class="mono">'+fmt(v,metric)+'</td><td style="width:140px;"><div class="bar-track" style="height:8px;"><div class="bar-fill '+(isAl?'fill-blue':'fill-orange')+'" style="width:'+pct+'%"></div></div></td></tr>';
+  }).join('');
+  document.getElementById('ov-table').innerHTML='<thead><tr><th>Tasarım</th><th>Malzeme</th><th>'+LABELS[metric]+'</th><th>Görsel</th></tr></thead><tbody>'+rows+'</tbody>';
+}
+
+let activeDetail=keys[0];
+function buildDetailTabs(){
+  const el=document.getElementById('dtabs');el.innerHTML='';
+  keys.forEach(k=>{
+    const[c,m]=k.split('|');
+    const btn=document.createElement('button');
+    btn.className='dtab'+(k===activeDetail?' active':'');
+    btn.textContent=NAMES[c]+' — '+(m==='Alüminyum'?'Al':'Çelik');
+    btn.onclick=()=>{activeDetail=k;buildDetailTabs();};
+    el.appendChild(btn);
+  });
+  buildDetailContent();
+}
+function buildDetailContent(){
+  const d=DB[activeDetail];
+  document.getElementById('ddetail').innerHTML=GROUPS.map(g=>
+    '<div class="dg-card"><div class="dg-title">'+g.title+'</div>'+
+    g.keys.map(k=>'<div class="dg-row"><span class="dg-rl">'+LABELS[k]+'</span><span class="dg-rv">'+fmt(d[k],k)+'</span></div>').join('')+'</div>'
+  ).join('');
+}
+
+function init(){
+  ['selA','selB','mselA','mselB','rselA','rselB'].forEach(id=>fillSelect(id));
+  document.getElementById('selB').selectedIndex=7;
+  document.getElementById('mselB').selectedIndex=7;
+  document.getElementById('rselB').selectedIndex=2;
+  buildOverview();
+  buildDetailTabs();
+  updateRange();
+}
+init();
+</script>
+</body>
+</html>
